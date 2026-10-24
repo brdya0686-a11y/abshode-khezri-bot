@@ -38,13 +38,17 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Verify hours, price parsing, summary, and compact format
+      - name: Verify mesghal-only quotes, price offsets, and daily report
         run: |
           python -m py_compile bot.py
           python - <<'PY'
           from datetime import datetime
           from zoneinfo import ZoneInfo
-          from bot import in_price_hours, session_day, parse_observations, record_observations, night_summary, format_rate_message, adjust_all_market_rates
+          from bot import (
+              in_price_hours, session_day, parse_mesghal_quotes, parse_observations,
+              record_observations, night_summary, format_rate_message,
+              adjust_all_market_rates, SELL_MARKUP_TOMAN, BUY_DISCOUNT_TOMAN
+          )
           zone = ZoneInfo("Asia/Tehran")
           at = lambda h,m: datetime(2026,10,25,h,m,tzinfo=zone)
           assert in_price_hours(at(8,0))
@@ -54,47 +58,49 @@ jobs:
           assert session_day(at(0,59)) == "2026-10-24"
           assert session_day(at(1,1)) == "2026-10-24"
           assert session_day(at(8,0)) == "2026-10-25"
-          raw = "پس فردایی دوشنبه\nهر مثقال\n🟢\nفروش : ۱۱۱,۳۶۰,۰۰۰\n🔴\nخرید : ۱۱۰,۹۲۰,۰۰۰\nهرگرم\nفروش : ۲۵,۷۰۷,۵۵۸\nخرید : ۲۵,۶۰۵,۹۸۴\n@valaneia_gold"
-          rates = parse_observations(raw)
-          assert rates["پس‌فردایی | مثقال | فروش"] == 111360000, rates
-          assert rates["پس‌فردایی | گرم | خرید"] == 25605984, rates
-          state = {"daily": {}}
-          record_observations(state, at(0,55), raw)
-          summary = night_summary(state, "2026-10-24")
-          assert "111,360,000" in summary and "110,920,000" in summary
-          assert "نوع معامله نامشخص" not in summary
-          msg = format_rate_message(raw)
+          assert (SELL_MARKUP_TOMAN, BUY_DISCOUNT_TOMAN) == (35000, 50000)
+          raw = ("💰 پس فردایی دوشنبه\n◀️ هر مثقال\n🟢 فروش : ۱۱۰,۸۰۰,۰۰۰\n"
+                 "🔴 خرید : ۱۱۰,۳۴۰,۰۰۰\n◀️ هرگرم\n"
+                 "🟢 فروش : ۲۵,۵۷۸,۲۸۲\n🔴 خرید : ۲۵,۴۷۲,۰۹۰\n@valaneia_gold")
+          expected = adjust_all_market_rates(raw)
+          assert "فروش : 110,835,000" in expected, expected
+          assert "خرید : 110,290,000" in expected, expected
+          assert "25,578,282" not in expected and "گرم" not in expected, expected
+          rates = parse_observations(expected)
+          assert rates == {
+              "پس‌فردایی | مثقال | فروش": 110835000,
+              "پس‌فردایی | مثقال | خرید": 110290000
+          }, rates
+          msg = format_rate_message(expected)
+          assert "<b>110,835,000</b>" in msg and "<b>110,290,000</b>" in msg, msg
+          assert "گرم" not in msg and "25,472,090" not in msg, msg
           assert "@valaneia_gold" not in msg and "@khezriabshodeh" in msg
-          assert "<b>111,360,000</b>" in msg
-          adjusted = adjust_all_market_rates(raw)
-          changed = parse_observations(adjusted)
-          assert changed["پس‌فردایی | مثقال | فروش"] == 111610000, changed
-          assert changed["پس‌فردایی | مثقال | خرید"] == 110870000, changed
-          assert changed["پس‌فردایی | گرم | فروش"] == 25957558, changed
-          assert changed["پس‌فردایی | گرم | خرید"] == 25555984, changed
-          assert "<b>111,610,000</b>" in format_rate_message(adjusted)
-          assert "<b>25,957,558</b>" in format_rate_message(adjusted)
-          # User-supplied example, with exactly the same absolute delta on both units
-          example = ("💰 پس فردایی دوشنبه\nهر مثقال\n🟢 فروش : ۱۱۰,۸۰۰,۰۰۰\n"
-                     "🔴 خرید : ۱۱۰,۳۴۰,۰۰۰\nهرگرم\n"
-                     "🟢 فروش : ۲۵,۵۷۸,۲۸۲\n🔴 خرید : ۲۵,۴۷۲,۰۹۰\n@valaneia_gold")
-          after = parse_observations(adjust_all_market_rates(example))
-          assert after["پس‌فردایی | مثقال | فروش"] == 111050000, after
-          assert after["پس‌فردایی | مثقال | خرید"] == 110290000, after
-          assert after["پس‌فردایی | گرم | فروش"] == 25828282, after
-          assert after["پس‌فردایی | گرم | خرید"] == 25422090, after
+          assert "گرم" not in format_rate_message(raw)
+          assert format_rate_message("هرگرم\nفروش : ۲۵,۵۷۸,۲۸۲\nخرید : ۲۵,۴۷۲,۰۹۰") == ""
+          assert adjust_all_market_rates("هرگرم\nفروش : ۲۵,۵۷۸,۲۸۲") == ""
+          assert adjust_all_market_rates("بدون نرخ ۱۲۳۴۵۶") == ""
+          assert "گرم" not in format_rate_message("هر مثقال\nفروش : ۱۱۰,۸۰۰,۰۰۰\nهر گرم\nخرید : ۲۵,۴۷۲,۰۹۰")
+          assert "خرید" not in format_rate_message("هر مثقال\nفروش : ۱۱۰,۸۰۰,۰۰۰\nهر گرم\nخرید : ۲۵,۴۷۲,۰۹۰")
           for market in ("نقد امروز", "نقدی", "نقد فردا یکشنبه", "فردایی", "پس‌فردایی"):
-              market_sample = (market + "\nهر مثقال\nفروش : ۱۱۰,۸۰۰,۰۰۰\nخرید : ۱۱۰,۳۴۰,۰۰۰\n"
-                               "هرگرم\nفروش : ۲۵,۵۷۸,۲۸۲\nخرید : ۲۵,۴۷۲,۰۹۰")
-              adjusted_market = adjust_all_market_rates(market_sample)
-              assert "فروش : 111,050,000" in adjusted_market, adjusted_market
-              assert "خرید : 110,290,000" in adjusted_market, adjusted_market
-              assert "فروش : 25,828,282" in adjusted_market, adjusted_market
-              assert "خرید : 25,422,090" in adjusted_market, adjusted_market
-          # Unknown values, source attribution, and unlabeled numbers remain untouched.
-          assert adjust_all_market_rates("بدون نرخ ۱۲۳۴۵۶") == "بدون نرخ ۱۲۳۴۵۶"
-          assert adjust_all_market_rates("هر مثقال\nفروش : ۱۱۰,۸۰۰,۰۰۰\n@alizadeyazd").endswith("@alizadeyazd")
-          print("All bot quality checks passed")
+              sample = (market + "\nهر مثقال\nفروش : ۱۱۰,۸۰۰,۰۰۰\nخرید : ۱۱۰,۳۴۰,۰۰۰\n"
+                        "هرگرم\nفروش : ۲۵,۵۷۸,۲۸۲\nخرید : ۲۵,۴۷۲,۰۹۰")
+              outgoing = adjust_all_market_rates(sample)
+              assert "110,835,000" in outgoing and "110,290,000" in outgoing, outgoing
+              assert "گرم" not in outgoing and "25,578,282" not in outgoing
+          mixed = ("نقد امروز\nهر مثقال\nفروش: ۱۰۸,۳۶۰,۰۰۰\nخرید: ۱۰۷,۷۳۰,۰۰۰\n"
+                   "هر گرم\nفروش: ۲۴,۰۰۰,۰۰۰\nفردایی\nهر مثقال\n"
+                   "فروش: ۱۱۰,۸۰۰,۰۰۰\nخرید: ۱۱۰,۳۴۰,۰۰۰")
+          assert len(parse_mesghal_quotes(mixed)) == 2
+          assert len(parse_mesghal_quotes("هر گرم\nفروش: ۲۴,۰۰۰,۰۰۰")) == 0
+          out = adjust_all_market_rates(mixed)
+          assert "108,395,000" in out and "110,835,000" in out
+          assert "24,000,000" not in out
+          state = {"daily": {"2026-10-24": {"نقدی | گرم | خرید": {"high": 25000000, "low": 25000000, "first": 25000000, "last": 25000000, "count": 1}}}}
+          record_observations(state, at(0,55), expected)
+          summary = night_summary(state, "2026-10-24")
+          assert "110,835,000" in summary and "110,290,000" in summary
+          assert "گرم" not in summary and "25,000,000" not in summary
+          print("All mesghal-only rate tests passed")
           PY
 
       - name: Send a single clearly labeled sample
@@ -111,8 +117,7 @@ jobs:
               previous_sample = (
                   "💰\nپس فردایی دوشنبه\n◀️\nهر مثقال\n🟢\n"
                   "فروش : ۱۱۱,۳۶۰,۰۰۰\n🔴\nخرید : ۱۱۰,۹۲۰,۰۰۰\n"
-                  "◀️\nهر گرم\n🟢\nفروش : ۲۵,۷۰۷,۵۵۸\n"
-                  "🔴\nخرید : ۲۵,۶۰۵,۹۸۴\n@valaneia_gold"
+                  "@valaneia_gold"
               )
               message = "🧪 <b>نمونه آزمایشی؛ نرخ فعلی بازار نیست</b>\n" + format_rate_message(previous_sample)
               send_rate(message)
