@@ -35,6 +35,48 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Send clearly marked sample to Telegram once
+        if: ${{ github.event_name == 'push' && github.event.head_commit.message == 'test: publish marked Telegram preview' }}
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.parse
+          import urllib.request
+
+          preview = (
+              "🧪 <b>پیام آزمایشی — نرخ واقعی نیست</b>\n"
+              "📊 <b>نرخ بازار</b>\n"
+              "💰 پس‌فردایی دوشنبه\n"
+              "◀️ <b>هر مثقال</b>\n"
+              "🟩 <b>فروش</b>: <b>111,360,000</b>\n"
+              "🟥 <b>خرید</b>: <b>110,920,000</b>\n"
+              "◀️ <b>هر گرم</b>\n"
+              "🟩 <b>فروش</b>: <b>25,707,558</b>\n"
+              "🟥 <b>خرید</b>: <b>25,605,984</b>\n"
+              '<b><a href="https://t.me/khezriabshodeh">@khezriabshodeh</a></b>'
+          )
+          token = os.getenv("BOT_TOKEN")
+          if not token:
+              raise SystemExit("BOT_TOKEN missing")
+          request = urllib.request.Request(
+              f"https://api.telegram.org/bot{token}/sendMessage",
+              data=urllib.parse.urlencode({
+                  "chat_id": "@khezriabshodeh",
+                  "text": preview,
+                  "parse_mode": "HTML",
+              }).encode("utf-8"),
+              method="POST",
+          )
+          with urllib.request.urlopen(request, timeout=20) as response:
+              result = json.load(response)
+          if not result.get("ok"):
+              raise RuntimeError("Telegram preview rejected")
+          print("Preview successfully sent to channel; message_id:", result["result"]["message_id"])
+          PY
+
       - name: Check for updated rates every ten seconds
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
