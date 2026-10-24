@@ -112,7 +112,16 @@ def format_rate_message(raw_text):
         if pending_marker:
             line = f"{pending_marker} {line}"
             pending_marker = ""
-        line = html.escape(line)
+        # Telegram supports colored emoji, but not custom font colors.
+        side_line = re.sub(r"^(?:🟢|🔴|🟩|🟥)\s*", "", line)
+        side = re.match(r"^(فروش|خرید)\s*:", side_line)
+        if side:
+            side_name = side.group(1)
+            icon = "🟩" if side_name == "فروش" else "🟥"
+            line = f"{icon} <b>{side_name}</b>:" + html.escape(side_line[side.end():])
+        else:
+            line = html.escape(line)
+
         line = re.sub(
             r"(?<!\w)\d+(?:[,.]\d+)*",
             lambda match: f"<b>{match.group(0)}</b>",
