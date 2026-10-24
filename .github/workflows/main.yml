@@ -8,7 +8,10 @@ on:
       - bot.py
       - .github/workflows/main.yml
   schedule:
-    - cron: '*/5 * * * *'
+    # GitHub cron uses UTC. Tehran = UTC+03:30 throughout the year.
+    # Covers Iran 08:00 through 01:29 the next day, including end-of-day summary.
+    - cron: '30-59/5 4 * * *'
+    - cron: '*/5 5-21 * * *'
 
 permissions:
   contents: write
@@ -34,6 +37,37 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
+
+      - name: Verify hours, price parsing, summary, and compact format
+        run: |
+          python -m py_compile bot.py
+          python - <<'PY'
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          from bot import in_price_hours, session_day, parse_observations, record_observations, night_summary, format_rate_message
+          zone = ZoneInfo("Asia/Tehran")
+          at = lambda h,m: datetime(2026,10,25,h,m,tzinfo=zone)
+          assert in_price_hours(at(8,0))
+          assert in_price_hours(at(0,59))
+          assert not in_price_hours(at(1,0))
+          assert not in_price_hours(at(7,59))
+          assert session_day(at(0,59)) == "2026-10-24"
+          assert session_day(at(1,1)) == "2026-10-24"
+          assert session_day(at(8,0)) == "2026-10-25"
+          raw = "پس فردایی دوشنبه\nهر مثقال\n🟢\nفروش : ۱۱۱,۳۶۰,۰۰۰\n🔴\nخرید : ۱۱۰,۹۲۰,۰۰۰\nهرگرم\nفروش : ۲۵,۷۰۷,۵۵۸\nخرید : ۲۵,۶۰۵,۹۸۴\n@valaneia_gold"
+          rates = parse_observations(raw)
+          assert rates["پس‌فردایی | مثقال | فروش"] == 111360000, rates
+          assert rates["پس‌فردایی | گرم | خرید"] == 25605984, rates
+          state = {"daily": {}}
+          record_observations(state, at(0,55), raw)
+          summary = night_summary(state, "2026-10-24")
+          assert "111,360,000" in summary and "110,920,000" in summary
+          assert "نوع معامله نامشخص" not in summary
+          msg = format_rate_message(raw)
+          assert "@valaneia_gold" not in msg and "@khezriabshodeh" in msg
+          assert "<b>111,360,000</b>" in msg
+          print("All bot quality checks passed")
+          PY
 
       - name: Check for updated rates every ten seconds
         env:
