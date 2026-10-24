@@ -1,1 +1,4 @@
-
+python-telegram-bot==21.0
+telethon
+requests
+beautifulsoup4
