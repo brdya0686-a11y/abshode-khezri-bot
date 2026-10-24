@@ -183,7 +183,7 @@ def send_rate(text):
         reason = str(error).lower()
         if "can't parse entities" not in reason and "message is too long" not in reason:
             raise
-        plain = html.unescape(re.sub(r"</?(?:b|i|a)(?:\\s+[^>]*)?>", "", text))
+        plain = html.unescape(re.sub(r"</?(?:b|i|a)(?:\s+[^>]*)?>", "", text))
         print(f"Telegram HTML rejected; retrying verified price as plain text: {error}", flush=True)
         _telegram_send(plain[:3900], formatted=False)
 
