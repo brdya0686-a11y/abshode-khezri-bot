@@ -95,7 +95,7 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHANNEL_ID: '@khezriabshodeh'
-          RUN_SECONDS: '240'
+          RUN_SECONDS: '270'
         run: python -u bot.py
 
       - name: Save last published rate to avoid duplicates
