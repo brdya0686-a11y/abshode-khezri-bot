@@ -70,7 +70,7 @@ jobs:
           PY
 
       - name: Send a single clearly labeled sample
-        if: ${{ github.event_name == 'push' && github.event.head_commit.message == 'test: publish marked Telegram preview' }}
+        if: "${{ github.event_name == 'push' && github.event.head_commit.message == 'test: publish marked Telegram preview' }}"
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHANNEL_ID: '@khezriabshodeh'
