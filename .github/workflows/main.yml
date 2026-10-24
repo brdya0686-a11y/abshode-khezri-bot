@@ -80,11 +80,29 @@ jobs:
         if: always()
         run: |
           if [ -f .bot_state.json ]; then
+            cp .bot_state.json /tmp/abshode-bot-state.json
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add .bot_state.json
-            if ! git diff --cached --quiet; then
+            # Start from latest main, not an outdated checkout, to avoid
+            # overwriting concurrent bot or workflow edits.
+            for attempt in 1 2 3; do
+              git fetch origin main
+              git reset --hard origin/main
+              cp /tmp/abshode-bot-state.json .bot_state.json
+              git add .bot_state.json
+              if git diff --cached --quiet; then
+                echo "No new bot state to save"
+                break
+              fi
               git commit -m "chore: remember last posted gold rate [skip ci]"
-              git push origin HEAD:main
-            fi
+              if git push origin HEAD:main; then
+                echo "Bot state saved"
+                break
+              fi
+              if [ "$attempt" -eq 3 ]; then
+                echo "Unable to save bot state after retries" >&2
+                exit 1
+              fi
+              sleep 2
+            done
           fi
