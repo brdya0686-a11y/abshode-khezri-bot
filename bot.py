@@ -23,7 +23,7 @@ print("Abshode Khezri bot started", flush=True)
 while True:
     try:
         updates = call("getUpdates", offset=offset, timeout=25).get("result", [])
-        for update in updates.get("result", []):
+        for update in updates:
             offset = update["update_id"] + 1
             msg = update.get("message", {})
             chat = msg.get("chat", {})
