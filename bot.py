@@ -22,7 +22,7 @@ DESTINATION = os.getenv("CHANNEL_ID", "@khezriabshodeh")
 TOKEN = os.getenv("BOT_TOKEN", "")
 CHECK_SECONDS = 10
 MAX_AGE_SECONDS = 300
-RUN_SECONDS = int(os.getenv("RUN_SECONDS", "240"))
+RUN_SECONDS = int(os.getenv("RUN_SECONDS", "270"))
 STATE_FILE = ".bot_state.json"
 IRAN_TZ = ZoneInfo("Asia/Tehran")
 DAY_START_HOUR = 8
@@ -60,8 +60,8 @@ def state_save(state):
 
 def fetch_source(source):
     req = urllib.request.Request(
-        f"https://t.me/s/{source}",
-        headers={"User-Agent": "Mozilla/5.0"},
+        f"https://t.me/s/{source}?v={int(time.time())}",
+        headers={"User-Agent": "Mozilla/5.0", "Cache-Control": "no-cache, no-store", "Pragma": "no-cache"},
     )
     with urllib.request.urlopen(req, timeout=10) as response:
         html = response.read(2_000_000).decode("utf-8", errors="replace")
@@ -148,22 +148,44 @@ def format_rate_message(raw_text):
     return "📊 نرخ بازار\n" + "\n".join(lines) + '\n<b><a href="https://t.me/khezriabshodeh">@khezriabshodeh</a></b>'
 
 
-def send_rate(text):
+def _telegram_send(text, formatted=True):
+    payload = {
+        "chat_id": DESTINATION,
+        "text": text,
+        "link_preview_options": json.dumps({"is_disabled": True}),
+    }
+    if formatted:
+        payload["parse_mode"] = "HTML"
     req = urllib.request.Request(
         f"https://api.telegram.org/bot{TOKEN}/sendMessage",
-        data=urllib.parse.urlencode({
-            "chat_id": DESTINATION,
-            "text": text,
-            "parse_mode": "HTML",
-            # Hide the Telegram channel preview (including contact phone numbers).
-            "link_preview_options": json.dumps({"is_disabled": True}),
-        }).encode("utf-8"),
+        data=urllib.parse.urlencode(payload).encode("utf-8"),
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=20) as response:
-        reply = json.load(response)
+    try:
+        with urllib.request.urlopen(req, timeout=20) as response:
+            reply = json.load(response)
+    except urllib.error.HTTPError as error:
+        # Log Telegram's actual reason rather than an opaque HTTP 400.
+        try:
+            detail = json.loads(error.read().decode("utf-8")).get("description", "unknown reason")
+        except (ValueError, UnicodeDecodeError):
+            detail = str(error.reason)
+        raise RuntimeError(f"Telegram HTTP {error.code}: {detail}") from error
     if not reply.get("ok"):
-        raise RuntimeError("Telegram rejected sendMessage")
+        raise RuntimeError(f"Telegram rejected sendMessage: {reply.get('description', 'unknown reason')}")
+
+
+def send_rate(text):
+    try:
+        _telegram_send(text, formatted=True)
+    except RuntimeError as error:
+        # A malformed HTML entity must not block a real, verified price.
+        reason = str(error).lower()
+        if "can't parse entities" not in reason and "message is too long" not in reason:
+            raise
+        plain = html.unescape(re.sub(r"</?(?:b|i|a)(?:\\s+[^>]*)?>", "", text))
+        print(f"Telegram HTML rejected; retrying verified price as plain text: {error}", flush=True)
+        _telegram_send(plain[:3900], formatted=False)
 
 
 
@@ -286,7 +308,7 @@ def check_once(state, executor):
         except Exception as error:
             print(f"Source @{source} unavailable: {type(error).__name__}: {error}", flush=True)
     if not posts:
-        print("No recent valid rate found; publishing nothing", flush=True)
+        print("No recent valid rate on either public preview (possibly delayed); publishing nothing", flush=True)
         return
     posts.sort(key=lambda p: (p[0], p[3] == SOURCES[0]), reverse=True)
     posted_at, post_id, text, source, signature = posts[0]
