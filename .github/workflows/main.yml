@@ -1,15 +1,31 @@
-
-name: Run Abshode Khezri Bot
+name: Abshode Khezri Gold Rates
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - bot.py
+      - .github/workflows/main.yml
+  schedule:
+    - cron: '*/5 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: abshode-khezri-rates
+  cancel-in-progress: false
 
 jobs:
-  run-bot:
+  publish-rates:
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -19,8 +35,22 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Start bot
+      - name: Check for updated rates every ten seconds
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          CHANNEL_ID: "@khezriabshodeh"
-        run: python bot.py
+          CHANNEL_ID: '@khezriabshodeh'
+          RUN_SECONDS: '240'
+        run: python -u bot.py
+
+      - name: Save last published rate to avoid duplicates
+        if: always()
+        run: |
+          if [ -f .bot_state.json ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .bot_state.json
+            if ! git diff --cached --quiet; then
+              git commit -m "chore: remember last posted gold rate [skip ci]"
+              git push origin HEAD:main
+            fi
+          fi
