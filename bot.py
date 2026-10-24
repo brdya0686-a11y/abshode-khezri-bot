@@ -121,7 +121,7 @@ def format_rate_message(raw_text):
         lines.append(line)
     if not lines:
         return ""
-    return "📊 نرخ بازار\n" + "\n".join(lines) + '\n🔗 <a href="https://t.me/khezriabshodeh">https://t.me/khezriabshodeh</a>'
+    return "📊 نرخ بازار\n" + "\n".join(lines) + '\n<b><a href="https://t.me/khezriabshodeh">@khezriabshodeh</a></b>'
 
 
 def send_rate(text):
