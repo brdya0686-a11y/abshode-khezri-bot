@@ -69,6 +69,28 @@ jobs:
           print("All bot quality checks passed")
           PY
 
+      - name: Send a single clearly labeled sample
+        if: ${{ github.event_name == 'push' && github.event.head_commit.message == 'test: publish marked Telegram preview' }}
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHANNEL_ID: '@khezriabshodeh'
+        run: |
+          python - <<'PY'
+          from bot import format_rate_message, in_price_hours, iran_time, send_rate
+          if not in_price_hours(iran_time()):
+              print("Preview not sent: outside Iran 08:00–01:00 window")
+          else:
+              previous_sample = (
+                  "💰\nپس فردایی دوشنبه\n◀️\nهر مثقال\n🟢\n"
+                  "فروش : ۱۱۱,۳۶۰,۰۰۰\n🔴\nخرید : ۱۱۰,۹۲۰,۰۰۰\n"
+                  "◀️\nهر گرم\n🟢\nفروش : ۲۵,۷۰۷,۵۵۸\n"
+                  "🔴\nخرید : ۲۵,۶۰۵,۹۸۴\n@valaneia_gold"
+              )
+              message = "🧪 <b>نمونه آزمایشی؛ نرخ فعلی بازار نیست</b>\n" + format_rate_message(previous_sample)
+              send_rate(message)
+              print("One clearly labeled preview sent successfully")
+          PY
+
       - name: Check for updated rates every ten seconds
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
