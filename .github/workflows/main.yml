@@ -44,7 +44,7 @@ jobs:
           python - <<'PY'
           from datetime import datetime
           from zoneinfo import ZoneInfo
-          from bot import in_price_hours, session_day, parse_observations, record_observations, night_summary, format_rate_message
+          from bot import in_price_hours, session_day, parse_observations, record_observations, night_summary, format_rate_message, adjust_pasfardai_rates
           zone = ZoneInfo("Asia/Tehran")
           at = lambda h,m: datetime(2026,10,25,h,m,tzinfo=zone)
           assert in_price_hours(at(8,0))
@@ -66,6 +66,17 @@ jobs:
           msg = format_rate_message(raw)
           assert "@valaneia_gold" not in msg and "@khezriabshodeh" in msg
           assert "<b>111,360,000</b>" in msg
+          adjusted = adjust_pasfardai_rates(raw)
+          changed = parse_observations(adjusted)
+          assert changed["پس‌فردایی | مثقال | فروش"] == 111610000, changed
+          assert changed["پس‌فردایی | مثقال | خرید"] == 110870000, changed
+          assert changed["پس‌فردایی | گرم | فروش"] == 25765271, changed
+          assert changed["پس‌فردایی | گرم | خرید"] == 25594441, changed
+          assert "<b>111,610,000</b>" in format_rate_message(adjusted)
+          unchanged = "نقد فردا یکشنبه\\nهر مثقال\\nفروش : ۱۰۸,۳۶۰,۰۰۰\\nخرید : ۱۰۷,۷۳۰,۰۰۰"
+          assert adjust_pasfardai_rates(unchanged) == unchanged
+          combined = raw + "\\n" + unchanged
+          assert "فروش : ۱۰۸,۳۶۰,۰۰۰" in adjust_pasfardai_rates(combined)
           print("All bot quality checks passed")
           PY
 
