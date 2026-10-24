@@ -4,6 +4,7 @@ Never publish invented, expired, or duplicate rates. GitHub Actions supplies
 BOT_TOKEN and CHANNEL_ID; state is saved between scheduled runs.
 """
 import datetime as datetime
+import html
 import json
 import os
 import re
@@ -79,10 +80,54 @@ def fetch_source(source):
     return results
 
 
+def format_rate_message(raw_text):
+    """Compact branded rates with western bold digits and no source footer."""
+    digit_map = str.maketrans(
+        "۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩٬٫",
+        "01234567890123456789,.",
+    )
+    lines = []
+    pending_marker = ""
+    for raw_line in raw_text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        # Never publish source identity, source timestamps, or attribution.
+        if re.match(r"^(?:منبع|source)\s*[:：]", line, re.IGNORECASE):
+            continue
+        if re.match(r"^(?:زمان\s*اعلام|زمان\s*منبع|تاریخ\s*اعلام|time\s*of|source\s*time|UTC\b)", line, re.IGNORECASE):
+            continue
+        if re.match(r"^(?:زمان|تاریخ|ساعت|date|time)\s*[:：]", line, re.IGNORECASE):
+            continue
+        line = re.sub(r"https?://(?:t\.me|telegram\.me)/\S+", "", line, flags=re.IGNORECASE)
+        line = re.sub(r"@[A-Za-z][A-Za-z0-9_]*", "", line)
+        line = re.sub(r"\b(?:valaneia_gold|alizadeyazd)\b", "", line, flags=re.IGNORECASE)
+        line = line.translate(digit_map)
+        line = re.sub(r"\s*[:：]\s*", ": ", line).strip()
+        if not line:
+            continue
+        if line in ("💰", "◀️", "◀", "▶️", "▶", "🟢", "🔴", "🔵", "🟡", "🟠", "⚪️"):
+            pending_marker = line
+            continue
+        if pending_marker:
+            line = f"{pending_marker} {line}"
+            pending_marker = ""
+        line = html.escape(line)
+        line = re.sub(
+            r"(?<!\w)\d+(?:[,.]\d+)*",
+            lambda match: f"<b>{match.group(0)}</b>",
+            line,
+        )
+        lines.append(line)
+    if not lines:
+        return ""
+    return "📊 نرخ بازار | آبشده خضری\n" + "\n".join(lines)
+
+
 def send_rate(text):
     req = urllib.request.Request(
         f"https://api.telegram.org/bot{TOKEN}/sendMessage",
-        data=urllib.parse.urlencode({"chat_id": DESTINATION, "text": text}).encode("utf-8"),
+        data=urllib.parse.urlencode({"chat_id": DESTINATION, "text": text, "parse_mode": "HTML"}).encode("utf-8"),
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=20) as response:
@@ -113,11 +158,10 @@ def check_once(state, executor):
         state["seen"] = (state["seen"] + [post_id])[-80:]
         state_save(state)
         return
-    message = (
-        "📊 نرخ بازار | آبشده خضری\n\n"
-        + text[:3200]
-        + f"\n\nمنبع: @{source}\nزمان اعلام منبع (UTC): {posted_at:%Y-%m-%d %H:%M}"
-    )
+    message = format_rate_message(text[:2400])
+    if not message:
+        print("Source text contained no publishable rate after cleanup", flush=True)
+        return
     try:
         send_rate(message)
     except Exception as error:
