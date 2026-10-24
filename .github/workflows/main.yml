@@ -73,9 +73,9 @@ jobs:
           assert changed["پس‌فردایی | گرم | فروش"] == 25765271, changed
           assert changed["پس‌فردایی | گرم | خرید"] == 25594441, changed
           assert "<b>111,610,000</b>" in format_rate_message(adjusted)
-          unchanged = "نقد فردا یکشنبه\\nهر مثقال\\nفروش : ۱۰۸,۳۶۰,۰۰۰\\nخرید : ۱۰۷,۷۳۰,۰۰۰"
+          unchanged = "نقد فردا یکشنبه\nهر مثقال\nفروش : ۱۰۸,۳۶۰,۰۰۰\nخرید : ۱۰۷,۷۳۰,۰۰۰"
           assert adjust_pasfardai_rates(unchanged) == unchanged
-          combined = raw + "\\n" + unchanged
+          combined = raw + "\n" + unchanged
           assert "فروش : ۱۰۸,۳۶۰,۰۰۰" in adjust_pasfardai_rates(combined)
           print("All bot quality checks passed")
           PY
