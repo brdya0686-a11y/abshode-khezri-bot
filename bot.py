@@ -13,6 +13,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
+from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
 
@@ -23,18 +24,32 @@ CHECK_SECONDS = 10
 MAX_AGE_SECONDS = 300
 RUN_SECONDS = int(os.getenv("RUN_SECONDS", "240"))
 STATE_FILE = ".bot_state.json"
+IRAN_TZ = ZoneInfo("Asia/Tehran")
+DAY_START_HOUR = 8
+DAY_END_HOUR = 1
+CHANNEL_LINK = '<b><a href="https://t.me/khezriabshodeh">@khezriabshodeh</a></b>'
 
 RATE_WORDS = re.compile(r"آب\s*[‌-]?\s*شده|مظنه|مثقال|(?:۱۸|18)\s*عیار")
 RATE_NUMBERS = re.compile(r"\d[\d,.\u066b\u066c،]{3,}")
 
 
 def state_load():
+    result = {
+        "last_time": "", "last_signature": "", "seen": [],
+        "daily": {}, "morning_sent": [], "night_sent": [],
+    }
     try:
         with open(STATE_FILE, encoding="utf-8") as fp:
             data = json.load(fp)
-        return {"last_time": data.get("last_time", ""), "last_signature": data.get("last_signature", ""), "seen": data.get("seen", [])[-80:]}
+        if not isinstance(data, dict):
+            return result
+        for field in result:
+            if field in data and isinstance(data[field], type(result[field])):
+                result[field] = data[field]
+        result["seen"] = result["seen"][-80:]
+        return result
     except (FileNotFoundError, ValueError, OSError):
-        return {"last_time": "", "last_signature": "", "seen": []}
+        return result
 
 
 def state_save(state):
@@ -145,7 +160,118 @@ def send_rate(text):
         raise RuntimeError("Telegram rejected sendMessage")
 
 
+
+def iran_time():
+    return datetime.datetime.now(IRAN_TZ)
+
+
+def in_price_hours(at):
+    """08:00 through 00:59 Iran time; closed 01:00-07:59."""
+    return at.hour >= DAY_START_HOUR or at.hour < DAY_END_HOUR
+
+
+def session_day(at):
+    """A session starts 08:00 and ends at 01:00 on the following date."""
+    day = at.date()
+    if at.hour < DAY_START_HOUR:
+        day -= datetime.timedelta(days=1)
+    return day.isoformat()
+
+
+def parse_observations(raw_text):
+    """Only extract explicit labeled buy/sell prices; never guess rates."""
+    if re.search(r"پس[\s‌-]*فردای", raw_text):
+        market = "پس‌فردایی"
+    elif re.search(r"فردای", raw_text):
+        market = "فردایی"
+    elif re.search(r"نقدی|نقد", raw_text):
+        market = "نقدی"
+    else:
+        market = "نوع معامله نامشخص"
+    unit = None
+    observations = {}
+    digit_map = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩٬٫", "01234567890123456789,.")
+    for source_line in raw_text.splitlines():
+        line = source_line.translate(digit_map)
+        if re.search(r"هر\s*مثقال|مظنه", line):
+            unit = "مثقال"
+        elif re.search(r"هر\s*گرم|گرم\s*(?:18|عیار)", line):
+            unit = "گرم"
+        elif re.search(r"آب\s*[‌-]?\s*شده", line) and re.search(r"خرید|فروش", line):
+            unit = "آبشده"
+        match = re.search(r"(فروش|خرید)\s*[:：]\s*([0-9][0-9,.]{3,})", line)
+        if not match or not unit:
+            continue
+        digits = match.group(2).replace(",", "")
+        try:
+            price = int(digits)
+        except ValueError:
+            continue
+        if price <= 0:
+            continue
+        key = f"{market} | {unit} | {match.group(1)}"
+        observations[key] = price
+    return observations
+
+
+def record_observations(state, posted_at, raw_text):
+    day = session_day(posted_at.astimezone(IRAN_TZ))
+    observed = parse_observations(raw_text)
+    if not observed:
+        return
+    today = state.setdefault("daily", {}).setdefault(day, {})
+    for name, price in observed.items():
+        item = today.setdefault(name, {"high": price, "low": price, "first": price, "last": price, "count": 0})
+        item["high"] = max(item["high"], price)
+        item["low"] = min(item["low"], price)
+        item["last"] = price
+        item["count"] += 1
+    for old in sorted(state["daily"])[:-4]:
+        del state["daily"][old]
+
+
+def night_summary(state, day):
+    rates = state.get("daily", {}).get(day, {})
+    parts = ["🌙 <b>شب بخیر | جمع‌بندی روزانه</b>"]
+    if not rates:
+        parts.append("امروز نرخ کافی برای محاسبه سقف و کف ثبت نشد.")
+    else:
+        parts.append("📊 سقف و کف نرخ‌های ثبت‌شده توسط ربات:")
+        for name, item in sorted(rates.items())[:12]:
+            parts.append(f"◀️ <b>{html.escape(name)}</b>")
+            parts.append(f"⬆️ بالاترین: <b>{item['high']:,}</b> | ⬇️ پایین‌ترین: <b>{item['low']:,}</b>")
+            if item["count"] > 1:
+                diff = item["last"] - item["first"]
+                direction = "📈" if diff > 0 else "📉" if diff < 0 else "➖"
+                parts.append(f"{direction} تغییر نسبت به اولین نرخ ثبت‌شده: <b>{diff:+,}</b>")
+        if len(rates) > 12:
+            parts.append("سایر نرخ‌ها برای کوتاه ماندن گزارش نمایش داده نشدند.")
+        parts.append("این اعداد فقط از نرخ‌هایی هستند که ربات ثبت کرده، نه کل معاملات بازار.")
+    parts.append(CHANNEL_LINK)
+    return "\n".join(parts)[:4000]
+
+
+def send_scheduled_messages(state):
+    now = iran_time()
+    day = now.date().isoformat()
+    if now.hour == DAY_START_HOUR and day not in state["morning_sent"]:
+        morning = "☀️ <b>صبح بخیر</b>\nروزتون پرسود و پربرکت 🌷\n📊 انتشار نرخ‌های تازه آغاز شد.\n" + CHANNEL_LINK
+        send_rate(morning)
+        state["morning_sent"] = (state["morning_sent"] + [day])[-7:]
+        state_save(state)
+        print(f"Morning greeting sent for {day}", flush=True)
+    if now.hour == DAY_END_HOUR:
+        previous_day = (now.date() - datetime.timedelta(days=1)).isoformat()
+        if previous_day not in state["night_sent"]:
+            send_rate(night_summary(state, previous_day))
+            state["night_sent"] = (state["night_sent"] + [previous_day])[-7:]
+            state_save(state)
+            print(f"Night summary sent for {previous_day}", flush=True)
+
+
 def check_once(state, executor):
+    if not in_price_hours(iran_time()):
+        return
     tasks = {source: executor.submit(fetch_source, source) for source in SOURCES}
     posts = []
     for source, task in tasks.items():
@@ -179,6 +305,7 @@ def check_once(state, executor):
     state["last_time"] = date_key
     state["last_signature"] = signature
     state["seen"] = (state["seen"] + [post_id])[-80:]
+    record_observations(state, posted_at, text)
     state_save(state)
     print(f"Published verified recent source post: {post_id}", flush=True)
 
@@ -192,6 +319,10 @@ def main():
     with ThreadPoolExecutor(max_workers=2) as executor:
         while time.monotonic() < deadline:
             start = time.monotonic()
+            try:
+                send_scheduled_messages(state)
+            except Exception as error:
+                print(f"Scheduled message error: {type(error).__name__}: {error}", flush=True)
             check_once(state, executor)
             wait = CHECK_SECONDS - (time.monotonic() - start)
             if wait > 0:
