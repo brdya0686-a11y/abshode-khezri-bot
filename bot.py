@@ -29,7 +29,7 @@ DAY_START_HOUR = 8
 DAY_END_HOUR = 1
 CHANNEL_LINK = '<b><a href="https://t.me/khezriabshodeh">@khezriabshodeh</a></b>'
 
-RATE_WORDS = re.compile(r"آب\s*[‌-]?\s*شده|مظنه|مثقال|(?:۱۸|18)\s*عیار")
+RATE_WORDS = re.compile(r"آب\s*[‌-]?\s*شده|مظنه|مثقال|هر\s*گرم|(?:۱۸|18)\s*عیار")
 RATE_NUMBERS = re.compile(r"\d[\d,.\u066b\u066c،]{3,}")
 
 
@@ -95,60 +95,52 @@ def fetch_source(source):
     return results
 
 
-# Dealer's own price offsets relative to a verified source quote, in toman.
-# The source's mesghal-to-18K-gram price ratio is approximately 4.3318.
-PAS_FARDAI_SELL_MARKUP_MESGHAL = 250_000
-PAS_FARDAI_BUY_DISCOUNT_MESGHAL = 50_000
-PRICE_RATIO_NUMERATOR = 43318
-PRICE_RATIO_DENOMINATOR = 10000
+# Direct toman offsets applied to every quoted market (cash, tomorrow, after-tomorrow)
+# and every quoted unit (mesghal and gram). Do NOT recalculate one unit from another.
+SELL_MARKUP_TOMAN = 250_000
+BUY_DISCOUNT_TOMAN = 50_000
+PERSIAN_ARABIC_DIGITS = str.maketrans(
+    "۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"
+)
+QUOTED_UNIT = re.compile(r"هر\s*(?:مثقال|گرم)|مظنه|گرم\s*(?:۱۸|18|عیار)")
+SIDE_PRICE = re.compile(
+    r"(?P<side>فروش|خرید)(?P<separator>\s*[:：]\s*)"
+    r"(?P<price>[0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬،.]{3,})"
+)
+MARKET_HEADING = re.compile(r"پس[\s‌-]*فردای|فردای|نقدی|نقد\s*(?:امروز|فردا)")
 
 
-def adjust_pasfardai_rates(raw_text):
-    """Quote Khezri's requested buy/sell prices for *pas-fardai* only.
+def adjust_all_market_rates(raw_text):
+    """Set each quoted source price directly: sell +250k; buy -50k toman.
 
-    Apply +250,000 toman to mesghal sale and -50,000 toman to mesghal buy.
-    Apply proportional changes to per-gram amounts, not 250,000 per gram.
-    Never alter other market sections or unlabelled figures.
+    Applies to cash, tomorrow, and after-tomorrow, for both gram and mesghal.
+    Does not touch dates, source usernames, or numbers without buy/sell labels.
     """
-    digit_map = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
-    price_re = re.compile(
-        r"(?P<side>فروش|خرید)(?P<sep>\s*[:：]\s*)"
-        r"(?P<price>[0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬،.]{3,})"
-    )
-    pas_fardai = False
-    unit = None
+    have_unit = False
     result = []
     for line in raw_text.splitlines(keepends=True):
-        if re.search(r"پس[\s‌-]*فردای", line):
-            pas_fardai, unit = True, None
-        elif re.search(r"نقد[\s‌-]*فردا|فردایی|نقدی", line):
-            pas_fardai, unit = False, None
-        if re.search(r"هر\s*مثقال|مظنه", line):
-            unit = "mesghal"
-        elif re.search(r"هر\s*گرم|گرم\s*(?:۱۸|18|عیار)", line):
-            unit = "gram"
-        if not pas_fardai or unit not in ("mesghal", "gram"):
+        if MARKET_HEADING.search(line):
+            have_unit = False
+        if QUOTED_UNIT.search(line):
+            have_unit = True
+        if not have_unit:
             result.append(line)
             continue
 
-        def update(match):
-            original = int(re.sub(r"\D", "", match.group("price").translate(digit_map)))
-            if original < 1_000_000:
+        def adjust(match):
+            digits = re.sub(r"\D", "", match.group("price").translate(PERSIAN_ARABIC_DIGITS))
+            if not digits:
                 return match.group(0)
-            mesghal_delta = (PAS_FARDAI_SELL_MARKUP_MESGHAL
-                             if match.group("side") == "فروش"
-                             else -PAS_FARDAI_BUY_DISCOUNT_MESGHAL)
-            if unit == "gram":
-                change = ((abs(mesghal_delta) * PRICE_RATIO_DENOMINATOR
-                           + PRICE_RATIO_NUMERATOR // 2) // PRICE_RATIO_NUMERATOR)
-                delta = change if mesghal_delta > 0 else -change
-            else:
-                delta = mesghal_delta
-            if original + delta <= 0:
+            amount = int(digits)
+            # Avoid accidentally adjusting a non-price quantity.
+            if amount < 1_000_000:
                 return match.group(0)
-            return f'{match.group("side")}{match.group("sep")}{original + delta:,}'
+            delta = SELL_MARKUP_TOMAN if match.group("side") == "فروش" else -BUY_DISCOUNT_TOMAN
+            if amount + delta <= 0:
+                return match.group(0)
+            return f'{match.group("side")}{match.group("separator")}{amount + delta:,}'
 
-        result.append(price_re.sub(update, line))
+        result.append(SIDE_PRICE.sub(adjust, line))
     return "".join(result)
 
 
@@ -378,7 +370,7 @@ def check_once(state, executor):
         state["seen"] = (state["seen"] + [post_id])[-80:]
         state_save(state)
         return
-    quoted_text = adjust_pasfardai_rates(text[:2400])
+    quoted_text = adjust_all_market_rates(text[:2400])
     message = format_rate_message(quoted_text)
     if not message:
         print("Source text contained no publishable rate after cleanup", flush=True)
