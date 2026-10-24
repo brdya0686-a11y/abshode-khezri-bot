@@ -112,27 +112,27 @@ def adjust_pasfardai_rates(raw_text):
     """
     digit_map = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
     price_re = re.compile(
-        r"(?P<side>فروش|خرید)(?P<sep>\\s*[:：]\\s*)"
+        r"(?P<side>فروش|خرید)(?P<sep>\s*[:：]\s*)"
         r"(?P<price>[0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬،.]{3,})"
     )
     pas_fardai = False
     unit = None
     result = []
     for line in raw_text.splitlines(keepends=True):
-        if re.search(r"پس[\\s‌-]*فردای", line):
+        if re.search(r"پس[\s‌-]*فردای", line):
             pas_fardai, unit = True, None
-        elif re.search(r"نقد[\\s‌-]*فردا|فردایی|نقدی", line):
+        elif re.search(r"نقد[\s‌-]*فردا|فردایی|نقدی", line):
             pas_fardai, unit = False, None
-        if re.search(r"هر\\s*مثقال|مظنه", line):
+        if re.search(r"هر\s*مثقال|مظنه", line):
             unit = "mesghal"
-        elif re.search(r"هر\\s*گرم|گرم\\s*(?:۱۸|18|عیار)", line):
+        elif re.search(r"هر\s*گرم|گرم\s*(?:۱۸|18|عیار)", line):
             unit = "gram"
         if not pas_fardai or unit not in ("mesghal", "gram"):
             result.append(line)
             continue
 
         def update(match):
-            original = int(re.sub(r"\\D", "", match.group("price").translate(digit_map)))
+            original = int(re.sub(r"\D", "", match.group("price").translate(digit_map)))
             if original < 1_000_000:
                 return match.group(0)
             mesghal_delta = (PAS_FARDAI_SELL_MARKUP_MESGHAL
