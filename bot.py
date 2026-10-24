@@ -29,7 +29,7 @@ DAY_START_HOUR = 8
 DAY_END_HOUR = 1
 CHANNEL_LINK = '<b><a href="https://t.me/khezriabshodeh">@khezriabshodeh</a></b>'
 
-RATE_WORDS = re.compile(r"آب\s*[‌-]?\s*شده|مظنه|مثقال|هر\s*گرم|(?:۱۸|18)\s*عیار")
+RATE_WORDS = re.compile(r"مثقال|مظنه")
 RATE_NUMBERS = re.compile(r"\d[\d,.\u066b\u066c،]{3,}")
 
 
@@ -74,7 +74,8 @@ def fetch_source(source):
         if timestamp is None or message is None:
             continue
         text = message.get_text("\n", strip=True)
-        if not RATE_WORDS.search(text) or not RATE_NUMBERS.search(text):
+        # A new post with only gram rates is not publishable.
+        if not RATE_WORDS.search(text) or not RATE_NUMBERS.search(text) or not parse_mesghal_quotes(text):
             continue
         try:
             posted_at = datetime.datetime.fromisoformat(timestamp["datetime"].replace("Z", "+00:00"))
@@ -89,112 +90,104 @@ def fetch_source(source):
         post_id = post.get("data-post", "")
         if not post_id.startswith(source + "/"):
             continue
-        numbers = [re.sub(r"\D", "", number) for number in RATE_NUMBERS.findall(text)]
-        signature = ":".join(numbers[:8])
+        # Ignore gram changes when deciding whether the mesghal quote is new.
+        signature = json.dumps(parse_mesghal_quotes(text), ensure_ascii=False, sort_keys=True)
         results.append((posted_at, post_id, text, source, signature))
     return results
 
 
-# Direct toman offsets applied to every quoted market (cash, tomorrow, after-tomorrow)
-# and every quoted unit (mesghal and gram). Do NOT recalculate one unit from another.
-SELL_MARKUP_TOMAN = 250_000
+# Only relay explicitly labeled mesghal (or mazaneh) rates.
+# All amounts are in toman. Do not convert gram prices into mesghal prices.
+SELL_MARKUP_TOMAN = 35_000
 BUY_DISCOUNT_TOMAN = 50_000
 PERSIAN_ARABIC_DIGITS = str.maketrans(
     "۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"
 )
-QUOTED_UNIT = re.compile(r"هر\s*(?:مثقال|گرم)|مظنه|گرم\s*(?:۱۸|18|عیار)")
+MESGHAL_UNIT = re.compile(r"مثقال|مظنه")
+OTHER_UNIT = re.compile(r"گرم|عیار|آب\s*[‌-]?\s*شده")
 SIDE_PRICE = re.compile(
-    r"(?P<side>فروش|خرید)(?P<separator>\s*[:：]\s*)"
+    r"(?P<side>فروش|خرید)\s*[:：]\s*"
     r"(?P<price>[0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬،.]{3,})"
 )
 MARKET_HEADING = re.compile(r"پس[\s‌-]*فردای|فردای|نقدی|نقد\s*(?:امروز|فردا)")
 
 
-def adjust_all_market_rates(raw_text):
-    """Set each quoted source price directly: sell +250k; buy -50k toman.
+def parse_mesghal_quotes(raw_text):
+    """Return market/price pairs only while in an explicit mesghal section.
 
-    Applies to cash, tomorrow, and after-tomorrow, for both gram and mesghal.
-    Does not touch dates, source usernames, or numbers without buy/sell labels.
+    Each item is (market, {side: source_toman_price}). Other units, including
+    gram, stop the mesghal section and cannot leak into the outgoing quote.
     """
-    have_unit = False
-    result = []
-    for line in raw_text.splitlines(keepends=True):
-        if MARKET_HEADING.search(line):
-            have_unit = False
-        if QUOTED_UNIT.search(line):
-            have_unit = True
-        if not have_unit:
-            result.append(line)
+    market = "نرخ مثقال"
+    active_mesghal = False
+    quotes = []
+    current = None
+    for raw_line in raw_text.splitlines():
+        line = raw_line.translate(PERSIAN_ARABIC_DIGITS)
+        market_hit = MARKET_HEADING.search(line)
+        if market_hit:
+            heading = market_hit.group(0)
+            if re.search(r"پس[\s‌-]*فردای", heading):
+                market = "پس‌فردایی"
+            elif re.search(r"فردای", heading):
+                market = "فردایی"
+            else:
+                market = "نقدی"
+            active_mesghal = False
+            current = None
+
+        if MESGHAL_UNIT.search(line):
+            active_mesghal = True
+            current = {}
+            quotes.append((market, current))
+        elif OTHER_UNIT.search(line):
+            active_mesghal = False
+            current = None
+
+        if not active_mesghal or current is None:
             continue
-
-        def adjust(match):
-            digits = re.sub(r"\D", "", match.group("price").translate(PERSIAN_ARABIC_DIGITS))
+        for match in SIDE_PRICE.finditer(line):
+            digits = re.sub(r"\D", "", match.group("price"))
             if not digits:
-                return match.group(0)
-            amount = int(digits)
-            # Avoid accidentally adjusting a non-price quantity.
-            if amount < 1_000_000:
-                return match.group(0)
-            delta = SELL_MARKUP_TOMAN if match.group("side") == "فروش" else -BUY_DISCOUNT_TOMAN
-            if amount + delta <= 0:
-                return match.group(0)
-            return f'{match.group("side")}{match.group("separator")}{amount + delta:,}'
+                continue
+            value = int(digits)
+            if value >= 1_000_000:
+                current[match.group("side")] = value
 
-        result.append(SIDE_PRICE.sub(adjust, line))
-    return "".join(result)
+    return [(market_name, prices) for market_name, prices in quotes if prices]
+
+
+def adjust_all_market_rates(raw_text):
+    """Publish mesghal only: sell source +35,000 and buy source -50,000."""
+    output = []
+    for market, prices in parse_mesghal_quotes(raw_text):
+        lines = [market, "هر مثقال"]
+        if "فروش" in prices:
+            lines.append(f"فروش : {prices['فروش'] + SELL_MARKUP_TOMAN:,}")
+        if "خرید" in prices:
+            new_buy = prices["خرید"] - BUY_DISCOUNT_TOMAN
+            if new_buy > 0:
+                lines.append(f"خرید : {new_buy:,}")
+        if len(lines) > 2:
+            output.append("\n".join(lines))
+    return "\n".join(output)
 
 
 def format_rate_message(raw_text):
-    """Compact branded rates with western bold digits and no source footer."""
-    digit_map = str.maketrans(
-        "۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩٬٫",
-        "01234567890123456789,.",
-    )
-    lines = []
-    pending_marker = ""
-    for raw_line in raw_text.splitlines():
-        line = raw_line.strip()
-        if not line:
-            continue
-        # Never publish source identity, source timestamps, or attribution.
-        if re.match(r"^(?:منبع|source)\s*[:：]", line, re.IGNORECASE):
-            continue
-        if re.match(r"^(?:زمان\s*اعلام|زمان\s*منبع|تاریخ\s*اعلام|time\s*of|source\s*time|UTC\b)", line, re.IGNORECASE):
-            continue
-        if re.match(r"^(?:زمان|تاریخ|ساعت|date|time)\s*[:：]", line, re.IGNORECASE):
-            continue
-        line = re.sub(r"https?://(?:t\.me|telegram\.me)/\S+", "", line, flags=re.IGNORECASE)
-        line = re.sub(r"@[A-Za-z][A-Za-z0-9_]*", "", line)
-        line = re.sub(r"\b(?:valaneia_gold|alizadeyazd)\b", "", line, flags=re.IGNORECASE)
-        line = line.translate(digit_map)
-        line = re.sub(r"\s*[:：]\s*", ": ", line).strip()
-        if not line:
-            continue
-        if line in ("💰", "◀️", "◀", "▶️", "▶", "🟢", "🔴", "🔵", "🟡", "🟠", "⚪️"):
-            pending_marker = line
-            continue
-        if pending_marker:
-            line = f"{pending_marker} {line}"
-            pending_marker = ""
-        # Telegram supports colored emoji, but not custom font colors.
-        side_line = re.sub(r"^(?:🟢|🔴|🟩|🟥)\s*", "", line)
-        side = re.match(r"^(فروش|خرید)\s*:", side_line)
-        if side:
-            side_name = side.group(1)
-            icon = "🟩" if side_name == "فروش" else "🟥"
-            line = f"{icon} <b>{side_name}</b>:" + html.escape(side_line[side.end():])
-        else:
-            line = html.escape(line)
-
-        line = re.sub(
-            r"(?<!\w)\d+(?:[,.]\d+)*",
-            lambda match: f"<b>{match.group(0)}</b>",
-            line,
-        )
-        lines.append(line)
-    if not lines:
+    """Clean, mesghal-only branded Telegram HTML; never include gram numbers."""
+    quotes = parse_mesghal_quotes(raw_text)
+    if not quotes:
         return ""
-    return "📊 نرخ بازار\n" + "\n".join(lines) + '\n<b><a href="https://t.me/khezriabshodeh">@khezriabshodeh</a></b>'
+    parts = ["📊 <b>نرخ بازار آبشده خضری</b>"]
+    for market, prices in quotes:
+        parts.append(f"💰 <b>{html.escape(market)}</b>")
+        parts.append("◀️ <b>هر مثقال (تومان)</b>")
+        if "فروش" in prices:
+            parts.append(f"🟩 <b>فروش:</b> <b>{prices['فروش']:,}</b>")
+        if "خرید" in prices:
+            parts.append(f"🟥 <b>خرید:</b> <b>{prices['خرید']:,}</b>")
+    parts.append(CHANNEL_LINK)
+    return "\n".join(parts)
 
 
 def _telegram_send(text, formatted=True):
@@ -256,38 +249,11 @@ def session_day(at):
 
 
 def parse_observations(raw_text):
-    """Only extract explicit labeled buy/sell prices; never guess rates."""
-    if re.search(r"پس[\s‌-]*فردای", raw_text):
-        market = "پس‌فردایی"
-    elif re.search(r"فردای", raw_text):
-        market = "فردایی"
-    elif re.search(r"نقدی|نقد", raw_text):
-        market = "نقدی"
-    else:
-        market = "نوع معامله نامشخص"
-    unit = None
+    """Extract only explicit mesghal buy/sell values for daily reporting."""
     observations = {}
-    digit_map = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩٬٫", "01234567890123456789,.")
-    for source_line in raw_text.splitlines():
-        line = source_line.translate(digit_map)
-        if re.search(r"هر\s*مثقال|مظنه", line):
-            unit = "مثقال"
-        elif re.search(r"هر\s*گرم|گرم\s*(?:18|عیار)", line):
-            unit = "گرم"
-        elif re.search(r"آب\s*[‌-]?\s*شده", line) and re.search(r"خرید|فروش", line):
-            unit = "آبشده"
-        match = re.search(r"(فروش|خرید)\s*[:：]\s*([0-9][0-9,.]{3,})", line)
-        if not match or not unit:
-            continue
-        digits = match.group(2).replace(",", "")
-        try:
-            price = int(digits)
-        except ValueError:
-            continue
-        if price <= 0:
-            continue
-        key = f"{market} | {unit} | {match.group(1)}"
-        observations[key] = price
+    for market, prices in parse_mesghal_quotes(raw_text):
+        for side, price in prices.items():
+            observations[f"{market} | مثقال | {side}"] = price
     return observations
 
 
@@ -308,7 +274,7 @@ def record_observations(state, posted_at, raw_text):
 
 
 def night_summary(state, day):
-    rates = state.get("daily", {}).get(day, {})
+    rates = {name: item for name, item in state.get("daily", {}).get(day, {}).items() if " | مثقال | " in name}
     parts = ["🌙 <b>شب بخیر | جمع‌بندی روزانه</b>"]
     if not rates:
         parts.append("امروز نرخ کافی برای محاسبه سقف و کف ثبت نشد.")
