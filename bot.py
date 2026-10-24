@@ -95,6 +95,63 @@ def fetch_source(source):
     return results
 
 
+# Dealer's own price offsets relative to a verified source quote, in toman.
+# The source's mesghal-to-18K-gram price ratio is approximately 4.3318.
+PAS_FARDAI_SELL_MARKUP_MESGHAL = 250_000
+PAS_FARDAI_BUY_DISCOUNT_MESGHAL = 50_000
+PRICE_RATIO_NUMERATOR = 43318
+PRICE_RATIO_DENOMINATOR = 10000
+
+
+def adjust_pasfardai_rates(raw_text):
+    """Quote Khezri's requested buy/sell prices for *pas-fardai* only.
+
+    Apply +250,000 toman to mesghal sale and -50,000 toman to mesghal buy.
+    Apply proportional changes to per-gram amounts, not 250,000 per gram.
+    Never alter other market sections or unlabelled figures.
+    """
+    digit_map = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
+    price_re = re.compile(
+        r"(?P<side>فروش|خرید)(?P<sep>\\s*[:：]\\s*)"
+        r"(?P<price>[0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬،.]{3,})"
+    )
+    pas_fardai = False
+    unit = None
+    result = []
+    for line in raw_text.splitlines(keepends=True):
+        if re.search(r"پس[\\s‌-]*فردای", line):
+            pas_fardai, unit = True, None
+        elif re.search(r"نقد[\\s‌-]*فردا|فردایی|نقدی", line):
+            pas_fardai, unit = False, None
+        if re.search(r"هر\\s*مثقال|مظنه", line):
+            unit = "mesghal"
+        elif re.search(r"هر\\s*گرم|گرم\\s*(?:۱۸|18|عیار)", line):
+            unit = "gram"
+        if not pas_fardai or unit not in ("mesghal", "gram"):
+            result.append(line)
+            continue
+
+        def update(match):
+            original = int(re.sub(r"\\D", "", match.group("price").translate(digit_map)))
+            if original < 1_000_000:
+                return match.group(0)
+            mesghal_delta = (PAS_FARDAI_SELL_MARKUP_MESGHAL
+                             if match.group("side") == "فروش"
+                             else -PAS_FARDAI_BUY_DISCOUNT_MESGHAL)
+            if unit == "gram":
+                change = ((abs(mesghal_delta) * PRICE_RATIO_DENOMINATOR
+                           + PRICE_RATIO_NUMERATOR // 2) // PRICE_RATIO_NUMERATOR)
+                delta = change if mesghal_delta > 0 else -change
+            else:
+                delta = mesghal_delta
+            if original + delta <= 0:
+                return match.group(0)
+            return f'{match.group("side")}{match.group("sep")}{original + delta:,}'
+
+        result.append(price_re.sub(update, line))
+    return "".join(result)
+
+
 def format_rate_message(raw_text):
     """Compact branded rates with western bold digits and no source footer."""
     digit_map = str.maketrans(
@@ -321,7 +378,8 @@ def check_once(state, executor):
         state["seen"] = (state["seen"] + [post_id])[-80:]
         state_save(state)
         return
-    message = format_rate_message(text[:2400])
+    quoted_text = adjust_pasfardai_rates(text[:2400])
+    message = format_rate_message(quoted_text)
     if not message:
         print("Source text contained no publishable rate after cleanup", flush=True)
         return
@@ -333,7 +391,7 @@ def check_once(state, executor):
     state["last_time"] = date_key
     state["last_signature"] = signature
     state["seen"] = (state["seen"] + [post_id])[-80:]
-    record_observations(state, posted_at, text)
+    record_observations(state, posted_at, quoted_text)
     state_save(state)
     print(f"Published verified recent source post: {post_id}", flush=True)
 
