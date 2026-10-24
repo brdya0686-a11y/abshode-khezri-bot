@@ -151,7 +151,13 @@ def format_rate_message(raw_text):
 def send_rate(text):
     req = urllib.request.Request(
         f"https://api.telegram.org/bot{TOKEN}/sendMessage",
-        data=urllib.parse.urlencode({"chat_id": DESTINATION, "text": text, "parse_mode": "HTML"}).encode("utf-8"),
+        data=urllib.parse.urlencode({
+            "chat_id": DESTINATION,
+            "text": text,
+            "parse_mode": "HTML",
+            # Hide the Telegram channel preview (including contact phone numbers).
+            "link_preview_options": json.dumps({"is_disabled": True}),
+        }).encode("utf-8"),
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=20) as response:
