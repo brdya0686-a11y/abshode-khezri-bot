@@ -26,6 +26,7 @@ RUN_SECONDS = int(os.getenv("RUN_SECONDS", "270"))
 STATE_FILE = ".bot_state.json"
 IRAN_TZ = ZoneInfo("Asia/Tehran")
 DAY_START_HOUR = 8
+DAY_START_MINUTE = 30
 DAY_END_HOUR = 1
 CHANNEL_LINK = '<b><a href="https://t.me/khezriabshodeh">@khezriabshodeh</a></b>'
 
@@ -236,12 +237,12 @@ def iran_time():
 
 
 def in_price_hours(at):
-    """08:00 through 00:59 Iran time; closed 01:00-07:59."""
-    return at.hour >= DAY_START_HOUR or at.hour < DAY_END_HOUR
+    """08:30 through 00:59 Iran time; closed 01:00-08:29."""
+    return (at.hour > DAY_START_HOUR or (at.hour == DAY_START_HOUR and at.minute >= DAY_START_MINUTE) or at.hour < DAY_END_HOUR)
 
 
 def session_day(at):
-    """A session starts 08:00 and ends at 01:00 on the following date."""
+    """A session starts 08:30 and ends at 01:00 on the following date."""
     day = at.date()
     if at.hour < DAY_START_HOUR:
         day -= datetime.timedelta(days=1)
@@ -297,7 +298,7 @@ def night_summary(state, day):
 def send_scheduled_messages(state):
     now = iran_time()
     day = now.date().isoformat()
-    if now.hour == DAY_START_HOUR and day not in state["morning_sent"]:
+    if now.hour == DAY_START_HOUR and now.minute >= DAY_START_MINUTE and day not in state["morning_sent"]:
         morning = "☀️ <b>صبح بخیر</b>\nروزتون پرسود و پربرکت 🌷\n📊 انتشار نرخ‌های تازه آغاز شد.\n" + CHANNEL_LINK
         send_rate(morning)
         state["morning_sent"] = (state["morning_sent"] + [day])[-7:]
