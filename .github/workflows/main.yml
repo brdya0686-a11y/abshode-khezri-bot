@@ -9,8 +9,8 @@ on:
       - .github/workflows/main.yml
   schedule:
     # GitHub cron uses UTC. Tehran = UTC+03:30 throughout the year.
-    # Runs every five minutes from Iran 08:30; bot enforces 08:30–00:59.
-    - cron: '*/5 5-21 * * *'
+    # Requests a run every five minutes; bot enforces Iran 08:30–00:59. GitHub scheduling may be delayed.
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: write
