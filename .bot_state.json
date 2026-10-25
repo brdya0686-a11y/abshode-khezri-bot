@@ -71,7 +71,9 @@
       }
     }
   },
-  "morning_sent": [],
+  "morning_sent": [
+    "2026-10-25"
+  ],
   "night_sent": [
     "2026-10-24"
   ]
