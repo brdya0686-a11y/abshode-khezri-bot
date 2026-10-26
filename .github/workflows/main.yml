@@ -58,21 +58,21 @@ jobs:
           assert session_day(at(0,59)) == "2026-10-24"
           assert session_day(at(1,1)) == "2026-10-24"
           assert session_day(at(8,30)) == "2026-10-25"
-          assert (SELL_MARKUP_TOMAN, BUY_DISCOUNT_TOMAN) == (35000, 50000)
+          assert (SELL_MARKUP_TOMAN, BUY_DISCOUNT_TOMAN) == (250000, 50000)
           raw = ("💰 پس فردایی دوشنبه\n◀️ هر مثقال\n🟢 فروش : ۱۱۰,۸۰۰,۰۰۰\n"
                  "🔴 خرید : ۱۱۰,۳۴۰,۰۰۰\n◀️ هرگرم\n"
                  "🟢 فروش : ۲۵,۵۷۸,۲۸۲\n🔴 خرید : ۲۵,۴۷۲,۰۹۰\n@valaneia_gold")
           expected = adjust_all_market_rates(raw)
-          assert "فروش : 110,835,000" in expected, expected
+          assert "فروش : 111,050,000" in expected, expected
           assert "خرید : 110,290,000" in expected, expected
           assert "25,578,282" not in expected and "گرم" not in expected, expected
           rates = parse_observations(expected)
           assert rates == {
-              "پس‌فردایی | مثقال | فروش": 110835000,
+              "پس‌فردایی | مثقال | فروش": 111050000,
               "پس‌فردایی | مثقال | خرید": 110290000
           }, rates
           msg = format_rate_message(expected)
-          assert "<b>110,835,000</b>" in msg and "<b>110,290,000</b>" in msg, msg
+          assert "<b>111,050,000</b>" in msg and "<b>110,290,000</b>" in msg, msg
           assert "گرم" not in msg and "25,472,090" not in msg, msg
           assert "@valaneia_gold" not in msg and "@khezriabshodeh" in msg
           assert "گرم" not in format_rate_message(raw)
@@ -85,7 +85,7 @@ jobs:
               sample = (market + "\nهر مثقال\nفروش : ۱۱۰,۸۰۰,۰۰۰\nخرید : ۱۱۰,۳۴۰,۰۰۰\n"
                         "هرگرم\nفروش : ۲۵,۵۷۸,۲۸۲\nخرید : ۲۵,۴۷۲,۰۹۰")
               outgoing = adjust_all_market_rates(sample)
-              assert "110,835,000" in outgoing and "110,290,000" in outgoing, outgoing
+              assert "111,050,000" in outgoing and "110,290,000" in outgoing, outgoing
               assert "گرم" not in outgoing and "25,578,282" not in outgoing
           mixed = ("نقد امروز\nهر مثقال\nفروش: ۱۰۸,۳۶۰,۰۰۰\nخرید: ۱۰۷,۷۳۰,۰۰۰\n"
                    "هر گرم\nفروش: ۲۴,۰۰۰,۰۰۰\nفردایی\nهر مثقال\n"
@@ -93,12 +93,12 @@ jobs:
           assert len(parse_mesghal_quotes(mixed)) == 2
           assert len(parse_mesghal_quotes("هر گرم\nفروش: ۲۴,۰۰۰,۰۰۰")) == 0
           out = adjust_all_market_rates(mixed)
-          assert "108,395,000" in out and "110,835,000" in out
+          assert "108,610,000" in out and "111,050,000" in out
           assert "24,000,000" not in out
           state = {"daily": {"2026-10-24": {"نقدی | گرم | خرید": {"high": 25000000, "low": 25000000, "first": 25000000, "last": 25000000, "count": 1}}}}
           record_observations(state, at(0,55), expected)
           summary = night_summary(state, "2026-10-24")
-          assert "110,835,000" in summary and "110,290,000" in summary
+          assert "111,050,000" in summary and "110,290,000" in summary
           assert "گرم" not in summary and "25,000,000" not in summary
           print("All mesghal-only rate tests passed")
           PY
