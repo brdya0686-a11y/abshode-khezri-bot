@@ -1,16 +1,7 @@
 {
-  "last_time": "2026-10-26T17:18:14+00:00",
-  "last_signature": "[[\"نقدی\", {\"خرید\": 113230000, \"فروش\": 113380000}]]",
+  "last_time": "2026-10-26T17:40:55+00:00",
+  "last_signature": "[[\"نقدی\", {\"خرید\": 112940000, \"فروش\": 113090000}]]",
   "seen": [
-    "valaneia_gold/298613",
-    "valaneia_gold/298671",
-    "valaneia_gold/298676",
-    "valaneia_gold/298677",
-    "valaneia_gold/298679",
-    "valaneia_gold/298682",
-    "alizadeyazd/1447181",
-    "valaneia_gold/298790",
-    "valaneia_gold/298795",
     "valaneia_gold/298796",
     "valaneia_gold/298798",
     "alizadeyazd/1447446",
@@ -81,7 +72,16 @@
     "alizadeyazd/1450796",
     "valaneia_gold/302034",
     "valaneia_gold/302040",
-    "valaneia_gold/302041"
+    "valaneia_gold/302041",
+    "valaneia_gold/302103",
+    "alizadeyazd/1450878",
+    "valaneia_gold/302107",
+    "alizadeyazd/1450885",
+    "valaneia_gold/302110",
+    "alizadeyazd/1450891",
+    "valaneia_gold/302116",
+    "alizadeyazd/1450898",
+    "valaneia_gold/302125"
   ],
   "daily": {
     "2026-10-24": {
@@ -191,29 +191,29 @@
         "high": 114495000,
         "low": 113205000,
         "first": 113665000,
-        "last": 113630000,
-        "count": 41
+        "last": 113340000,
+        "count": 48
       },
       "نقدی | مثقال | خرید": {
         "high": 114290000,
-        "low": 112970000,
+        "low": 112890000,
         "first": 113330000,
-        "last": 113180000,
-        "count": 41
+        "last": 112890000,
+        "count": 48
       },
       "پس‌فردایی | مثقال | فروش": {
         "high": 115065000,
         "low": 114135000,
         "first": 114395000,
-        "last": 114560000,
-        "count": 22
+        "last": 114220000,
+        "count": 24
       },
       "پس‌فردایی | مثقال | خرید": {
         "high": 114840000,
-        "low": 113920000,
+        "low": 113790000,
         "first": 114040000,
-        "last": 114130000,
-        "count": 22
+        "last": 113790000,
+        "count": 24
       },
       "نرخ مثقال | مثقال | فروش": {
         "high": 115120000,
