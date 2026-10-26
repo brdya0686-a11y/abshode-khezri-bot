@@ -1,0 +1,20 @@
+[Unit]
+Description=Abshode Khezri Telegram gold rate relay
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/abshode-khezri-bot
+EnvironmentFile=/etc/abshode-khezri.env
+Environment=RUN_SECONDS=0
+Environment=PRICE_24H=1
+ExecStart=/opt/abshode-khezri-bot/.venv/bin/python -u bot.py
+Restart=always
+RestartSec=15
+StartLimitIntervalSec=0
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
