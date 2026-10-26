@@ -99,7 +99,7 @@ def fetch_source(source):
 
 # Only relay explicitly labeled mesghal (or mazaneh) rates.
 # All amounts are in toman. Do not convert gram prices into mesghal prices.
-SELL_MARKUP_TOMAN = 35_000
+SELL_MARKUP_TOMAN = 250_000
 BUY_DISCOUNT_TOMAN = 50_000
 PERSIAN_ARABIC_DIGITS = str.maketrans(
     "۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"
@@ -159,7 +159,7 @@ def parse_mesghal_quotes(raw_text):
 
 
 def adjust_all_market_rates(raw_text):
-    """Publish mesghal only: sell source +35,000 and buy source -50,000."""
+    """Publish mesghal only: sell source +250,000 and buy source -50,000."""
     output = []
     for market, prices in parse_mesghal_quotes(raw_text):
         lines = [market, "هر مثقال"]
@@ -314,7 +314,7 @@ def send_scheduled_messages(state):
 
 
 def check_once(state, executor):
-    if not in_price_hours(iran_time()):
+    if os.getenv("PRICE_24H", "0") != "1" and not in_price_hours(iran_time()):
         return
     tasks = {source: executor.submit(fetch_source, source) for source in SOURCES}
     posts = []
@@ -357,12 +357,12 @@ def check_once(state, executor):
 
 def main():
     if not TOKEN:
-        raise SystemExit("BOT_TOKEN is not configured in GitHub secrets")
+        raise SystemExit("BOT_TOKEN is not configured")
     state = state_load()
     deadline = time.monotonic() + RUN_SECONDS
     print("Abshode Khezri price relay started", flush=True)
     with ThreadPoolExecutor(max_workers=2) as executor:
-        while time.monotonic() < deadline:
+        while RUN_SECONDS <= 0 or time.monotonic() < deadline:
             start = time.monotonic()
             try:
                 send_scheduled_messages(state)
@@ -371,7 +371,7 @@ def main():
             check_once(state, executor)
             wait = CHECK_SECONDS - (time.monotonic() - start)
             if wait > 0:
-                time.sleep(min(wait, max(0, deadline - time.monotonic())))
+                time.sleep(wait if RUN_SECONDS <= 0 else min(wait, max(0, deadline - time.monotonic())))
     print("Price relay scheduled window completed", flush=True)
 
 
