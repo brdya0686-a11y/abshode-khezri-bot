@@ -20,7 +20,7 @@ from bs4 import BeautifulSoup
 SOURCES = ("valaneia_gold", "alizadeyazd")
 DESTINATION = os.getenv("CHANNEL_ID", "@khezriabshodeh")
 TOKEN = os.getenv("BOT_TOKEN", "")
-CHECK_SECONDS = 10
+CHECK_SECONDS = 5
 MAX_AGE_SECONDS = 300
 RUN_SECONDS = int(os.getenv("RUN_SECONDS", "270"))
 STATE_FILE = ".bot_state.json"
