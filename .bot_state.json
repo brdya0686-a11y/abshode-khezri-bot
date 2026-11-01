@@ -1,14 +1,7 @@
 {
-  "last_time": "2026-11-01T17:18:58+00:00",
-  "last_signature": "[[\"نقدی\", {\"خرید\": 110590000, \"فروش\": 110750000}]]",
+  "last_time": "2026-11-01T17:50:11+00:00",
+  "last_signature": "[[\"نرخ مثقال\", {\"خرید\": 111445000, \"فروش\": 111575000}]]",
   "seen": [
-    "valaneia_gold/317271",
-    "alizadeyazd/1467433",
-    "alizadeyazd/1467562",
-    "valaneia_gold/317400",
-    "alizadeyazd/1467568",
-    "valaneia_gold/317406",
-    "alizadeyazd/1467572",
     "valaneia_gold/317408",
     "alizadeyazd/1467578",
     "valaneia_gold/317415",
@@ -81,7 +74,14 @@
     "alizadeyazd/1469184",
     "valaneia_gold/318889",
     "alizadeyazd/1469195",
-    "valaneia_gold/318895"
+    "valaneia_gold/318895",
+    "alizadeyazd/1469415",
+    "valaneia_gold/319089",
+    "valaneia_gold/319091",
+    "valaneia_gold/319103",
+    "valaneia_gold/319110",
+    "alizadeyazd/1469443",
+    "alizadeyazd/1469453"
   ],
   "daily": {
     "2026-10-29": {
@@ -221,15 +221,15 @@
         "high": 111400000,
         "low": 110270000,
         "first": 111370000,
-        "last": 111000000,
-        "count": 77
+        "last": 111270000,
+        "count": 81
       },
       "نقدی | مثقال | خرید": {
         "high": 110930000,
         "low": 109890000,
         "first": 110930000,
-        "last": 110540000,
-        "count": 77
+        "last": 110810000,
+        "count": 81
       },
       "پس‌فردایی | مثقال | فروش": {
         "high": 111930000,
@@ -246,18 +246,18 @@
         "count": 22
       },
       "نرخ مثقال | مثقال | فروش": {
-        "high": 111795000,
+        "high": 111865000,
         "low": 110815000,
         "first": 111755000,
-        "last": 111515000,
-        "count": 21
+        "last": 111825000,
+        "count": 24
       },
       "نرخ مثقال | مثقال | خرید": {
-        "high": 111355000,
+        "high": 111435000,
         "low": 110425000,
         "first": 111315000,
-        "last": 111085000,
-        "count": 21
+        "last": 111395000,
+        "count": 24
       }
     }
   },
