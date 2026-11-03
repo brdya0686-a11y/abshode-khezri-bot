@@ -1,15 +1,7 @@
 {
-  "last_time": "2026-11-03T15:12:32+00:00",
-  "last_signature": "[[\"نقدی\", {\"خرید\": 110040000, \"فروش\": 110150000}]]",
+  "last_time": "2026-11-03T16:00:09+00:00",
+  "last_signature": "[[\"نقدی\", {\"خرید\": 110160000, \"فروش\": 110300000}]]",
   "seen": [
-    "valaneia_gold/322647",
-    "valaneia_gold/322648",
-    "valaneia_gold/322687",
-    "valaneia_gold/322689",
-    "valaneia_gold/322693",
-    "valaneia_gold/322720",
-    "valaneia_gold/322737",
-    "valaneia_gold/322836",
     "alizadeyazd/1473270",
     "valaneia_gold/322839",
     "valaneia_gold/322841",
@@ -81,7 +73,15 @@
     "alizadeyazd/1475457",
     "alizadeyazd/1475460",
     "valaneia_gold/324783",
-    "alizadeyazd/1475470"
+    "alizadeyazd/1475470",
+    "valaneia_gold/324921",
+    "valaneia_gold/324923",
+    "valaneia_gold/324924",
+    "valaneia_gold/324926",
+    "alizadeyazd/1475632",
+    "valaneia_gold/324930",
+    "alizadeyazd/1475634",
+    "valaneia_gold/324934"
   ],
   "daily": {
     "2026-10-31": {
@@ -221,43 +221,43 @@
         "high": 111060000,
         "low": 110360000,
         "first": 111010000,
-        "last": 110400000,
-        "count": 35
+        "last": 110550000,
+        "count": 39
       },
       "نقدی | مثقال | خرید": {
         "high": 110600000,
         "low": 109920000,
         "first": 110520000,
-        "last": 109990000,
-        "count": 35
+        "last": 110110000,
+        "count": 39
       },
       "نرخ مثقال | مثقال | فروش": {
         "high": 111605000,
         "low": 110925000,
         "first": 111535000,
-        "last": 110965000,
-        "count": 16
+        "last": 111075000,
+        "count": 17
       },
       "نرخ مثقال | مثقال | خرید": {
         "high": 111215000,
         "low": 110485000,
         "first": 111105000,
-        "last": 110495000,
-        "count": 16
+        "last": 110605000,
+        "count": 17
       },
       "پس‌فردایی | مثقال | فروش": {
         "high": 111600000,
         "low": 111010000,
         "first": 111510000,
-        "last": 111050000,
-        "count": 21
+        "last": 111160000,
+        "count": 24
       },
       "پس‌فردایی | مثقال | خرید": {
         "high": 111180000,
         "low": 110530000,
         "first": 111050000,
-        "last": 110540000,
-        "count": 21
+        "last": 110650000,
+        "count": 24
       }
     }
   },
