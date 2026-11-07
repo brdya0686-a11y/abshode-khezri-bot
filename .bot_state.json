@@ -1,16 +1,7 @@
 {
-  "last_time": "2026-11-07T12:06:55+00:00",
-  "last_signature": "[[\"پس‌فردایی\", {\"خرید\": 111390000, \"فروش\": 111520000}]]",
+  "last_time": "2026-11-07T12:51:48+00:00",
+  "last_signature": "[[\"نقدی\", {\"خرید\": 111190000, \"فروش\": 111300000}]]",
   "seen": [
-    "alizadeyazd/1484617",
-    "alizadeyazd/1484735",
-    "alizadeyazd/1484736",
-    "valaneia_gold/333544",
-    "valaneia_gold/333551",
-    "valaneia_gold/333643",
-    "valaneia_gold/333646",
-    "valaneia_gold/333650",
-    "valaneia_gold/333652",
     "valaneia_gold/333763",
     "valaneia_gold/333772",
     "valaneia_gold/333776",
@@ -81,7 +72,16 @@
     "alizadeyazd/1487083",
     "valaneia_gold/335688",
     "alizadeyazd/1487089",
-    "valaneia_gold/335694"
+    "valaneia_gold/335694",
+    "alizadeyazd/1487255",
+    "valaneia_gold/335838",
+    "alizadeyazd/1487259",
+    "valaneia_gold/335840",
+    "alizadeyazd/1487260",
+    "alizadeyazd/1487262",
+    "valaneia_gold/335844",
+    "alizadeyazd/1487265",
+    "valaneia_gold/335848"
   ],
   "daily": {
     "2026-11-04": {
@@ -221,15 +221,15 @@
         "high": 113015000,
         "low": 111655000,
         "first": 113015000,
-        "last": 111755000,
-        "count": 17
+        "last": 111925000,
+        "count": 18
       },
       "نرخ مثقال | مثقال | خرید": {
         "high": 112605000,
         "low": 111275000,
         "first": 112605000,
-        "last": 111375000,
-        "count": 17
+        "last": 111545000,
+        "count": 18
       },
       "پس‌فردایی | مثقال | فروش": {
         "high": 112950000,
@@ -249,15 +249,15 @@
         "high": 112630000,
         "low": 111320000,
         "first": 112630000,
-        "last": 111440000,
-        "count": 36
+        "last": 111550000,
+        "count": 44
       },
       "نقدی | مثقال | خرید": {
         "high": 112220000,
         "low": 110910000,
         "first": 112220000,
-        "last": 111030000,
-        "count": 36
+        "last": 111140000,
+        "count": 44
       }
     }
   },
