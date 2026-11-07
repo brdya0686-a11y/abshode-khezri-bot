@@ -1,15 +1,7 @@
 {
-  "last_time": "2026-11-07T15:34:06+00:00",
-  "last_signature": "[[\"نقدی\", {\"خرید\": 110550000, \"فروش\": 110660000}]]",
+  "last_time": "2026-11-07T16:14:19+00:00",
+  "last_signature": "[[\"نقدی\", {\"خرید\": 110410000, \"فروش\": 110480000}]]",
   "seen": [
-    "alizadeyazd/1485861",
-    "valaneia_gold/334605",
-    "alizadeyazd/1485871",
-    "alizadeyazd/1485877",
-    "valaneia_gold/334617",
-    "alizadeyazd/1485883",
-    "valaneia_gold/334625",
-    "alizadeyazd/1485896",
     "alizadeyazd/1486152",
     "valaneia_gold/334852",
     "alizadeyazd/1486165",
@@ -81,7 +73,15 @@
     "valaneia_gold/336474",
     "valaneia_gold/336477",
     "valaneia_gold/336483",
-    "valaneia_gold/336489"
+    "valaneia_gold/336489",
+    "valaneia_gold/336632",
+    "valaneia_gold/336638",
+    "valaneia_gold/336643",
+    "alizadeyazd/1488164",
+    "valaneia_gold/336645",
+    "alizadeyazd/1488169",
+    "valaneia_gold/336650",
+    "alizadeyazd/1488173"
   ],
   "daily": {
     "2026-11-04": {
@@ -233,31 +233,31 @@
       },
       "پس‌فردایی | مثقال | فروش": {
         "high": 112950000,
-        "low": 111480000,
+        "low": 111380000,
         "first": 112940000,
-        "last": 111480000,
-        "count": 18
+        "last": 111380000,
+        "count": 21
       },
       "پس‌فردایی | مثقال | خرید": {
         "high": 112490000,
-        "low": 111060000,
+        "low": 110960000,
         "first": 112480000,
-        "last": 111060000,
-        "count": 18
+        "last": 110960000,
+        "count": 21
       },
       "نقدی | مثقال | فروش": {
         "high": 112630000,
-        "low": 110880000,
+        "low": 110730000,
         "first": 112630000,
-        "last": 110910000,
-        "count": 54
+        "last": 110730000,
+        "count": 59
       },
       "نقدی | مثقال | خرید": {
         "high": 112220000,
-        "low": 110470000,
+        "low": 110340000,
         "first": 112220000,
-        "last": 110500000,
-        "count": 54
+        "last": 110360000,
+        "count": 59
       }
     }
   },
