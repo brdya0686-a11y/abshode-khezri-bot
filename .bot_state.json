@@ -1,12 +1,7 @@
 {
-  "last_time": "2026-11-08T14:45:14+00:00",
-  "last_signature": "[[\"نقدی\", {\"خرید\": 109190000, \"فروش\": 109310000}]]",
+  "last_time": "2026-11-08T15:19:00+00:00",
+  "last_signature": "[[\"نقدی\", {\"خرید\": 109250000, \"فروش\": 109330000}]]",
   "seen": [
-    "valaneia_gold/338040",
-    "alizadeyazd/1489392",
-    "valaneia_gold/338046",
-    "valaneia_gold/338049",
-    "alizadeyazd/1489402",
     "valaneia_gold/338052",
     "alizadeyazd/1489710",
     "valaneia_gold/338321",
@@ -81,7 +76,12 @@
     "alizadeyazd/1491719",
     "alizadeyazd/1491721",
     "alizadeyazd/1491724",
-    "valaneia_gold/340095"
+    "valaneia_gold/340095",
+    "valaneia_gold/340201",
+    "alizadeyazd/1491841",
+    "valaneia_gold/340208",
+    "valaneia_gold/340210",
+    "alizadeyazd/1491850"
   ],
   "daily": {
     "2026-11-05": {
@@ -221,15 +221,15 @@
         "high": 110450000,
         "low": 109330000,
         "first": 110450000,
-        "last": 109560000,
-        "count": 50
+        "last": 109580000,
+        "count": 54
       },
       "نقدی | مثقال | خرید": {
         "high": 109990000,
         "low": 108910000,
         "first": 109950000,
-        "last": 109140000,
-        "count": 50
+        "last": 109200000,
+        "count": 54
       },
       "نرخ مثقال | مثقال | فروش": {
         "high": 110735000,
@@ -249,15 +249,15 @@
         "high": 110760000,
         "low": 109820000,
         "first": 110200000,
-        "last": 110290000,
-        "count": 11
+        "last": 110240000,
+        "count": 12
       },
       "پس‌فردایی | مثقال | خرید": {
         "high": 110310000,
         "low": 109370000,
         "first": 109750000,
-        "last": 109860000,
-        "count": 11
+        "last": 109810000,
+        "count": 12
       }
     }
   },
