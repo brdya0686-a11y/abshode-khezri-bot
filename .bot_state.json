@@ -1,15 +1,7 @@
 {
-  "last_time": "2026-11-10T15:15:20+00:00",
-  "last_signature": "[[\"نقدی\", {\"خرید\": 107690000, \"فروش\": 107840000}]]",
+  "last_time": "2026-11-10T16:01:27+00:00",
+  "last_signature": "[[\"پس‌فردایی\", {\"خرید\": 107830000, \"فروش\": 108000000}]]",
   "seen": [
-    "valaneia_gold/344077",
-    "valaneia_gold/344078",
-    "valaneia_gold/344172",
-    "valaneia_gold/344175",
-    "valaneia_gold/344177",
-    "valaneia_gold/344179",
-    "valaneia_gold/344181",
-    "valaneia_gold/344231",
     "valaneia_gold/344232",
     "valaneia_gold/344235",
     "alizadeyazd/1495931",
@@ -81,7 +73,15 @@
     "alizadeyazd/1498117",
     "alizadeyazd/1498119",
     "valaneia_gold/346368",
-    "valaneia_gold/346369"
+    "valaneia_gold/346369",
+    "valaneia_gold/346593",
+    "valaneia_gold/346598",
+    "alizadeyazd/1498378",
+    "valaneia_gold/346605",
+    "alizadeyazd/1498386",
+    "valaneia_gold/346614",
+    "alizadeyazd/1498393",
+    "valaneia_gold/346621"
   ],
   "daily": {
     "2026-11-07": {
@@ -233,31 +233,31 @@
       },
       "پس‌فردایی | مثقال | فروش": {
         "high": 110300000,
-        "low": 109230000,
+        "low": 108250000,
         "first": 110300000,
-        "last": 109230000,
-        "count": 19
+        "last": 108250000,
+        "count": 23
       },
       "پس‌فردایی | مثقال | خرید": {
         "high": 109860000,
-        "low": 108760000,
+        "low": 107780000,
         "first": 109830000,
-        "last": 108760000,
-        "count": 19
+        "last": 107780000,
+        "count": 23
       },
       "نقدی | مثقال | فروش": {
         "high": 109950000,
-        "low": 108090000,
+        "low": 107200000,
         "first": 109680000,
-        "last": 108090000,
-        "count": 32
+        "last": 107200000,
+        "count": 36
       },
       "نقدی | مثقال | خرید": {
         "high": 109510000,
-        "low": 107640000,
+        "low": 106740000,
         "first": 109220000,
-        "last": 107640000,
-        "count": 32
+        "last": 106790000,
+        "count": 36
       }
     }
   },
