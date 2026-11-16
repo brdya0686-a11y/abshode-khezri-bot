@@ -1,15 +1,7 @@
 {
-  "last_time": "2026-11-16T09:38:59+00:00",
-  "last_signature": "[[\"نرخ مثقال\", {\"خرید\": 106605000, \"فروش\": 106675000}]]",
+  "last_time": "2026-11-16T11:02:49+00:00",
+  "last_signature": "[[\"نقدی\", {\"خرید\": 106770000, \"فروش\": 106830000}]]",
   "seen": [
-    "valaneia_gold/359986",
-    "valaneia_gold/360154",
-    "alizadeyazd/1511764",
-    "valaneia_gold/360157",
-    "alizadeyazd/1511765",
-    "valaneia_gold/360167",
-    "valaneia_gold/360298",
-    "alizadeyazd/1511915",
     "valaneia_gold/360301",
     "alizadeyazd/1511920",
     "alizadeyazd/1511922",
@@ -81,7 +73,15 @@
     "valaneia_gold/362954",
     "alizadeyazd/1514581",
     "valaneia_gold/362962",
-    "alizadeyazd/1514593"
+    "alizadeyazd/1514593",
+    "alizadeyazd/1515102",
+    "valaneia_gold/363427",
+    "alizadeyazd/1515112",
+    "valaneia_gold/363438",
+    "alizadeyazd/1515119",
+    "valaneia_gold/363445",
+    "alizadeyazd/1515127",
+    "alizadeyazd/1515133"
   ],
   "daily": {
     "2026-11-13": {
@@ -232,32 +232,32 @@
         "count": 7
       },
       "نقدی | مثقال | فروش": {
-        "high": 106660000,
+        "high": 107190000,
         "low": 105590000,
         "first": 105590000,
-        "last": 106660000,
-        "count": 4
+        "last": 107080000,
+        "count": 11
       },
       "نقدی | مثقال | خرید": {
-        "high": 106260000,
+        "high": 106790000,
         "low": 105190000,
         "first": 105190000,
-        "last": 106260000,
-        "count": 4
+        "last": 106720000,
+        "count": 11
       },
       "نرخ مثقال | مثقال | فروش": {
-        "high": 107055000,
+        "high": 107515000,
         "low": 105955000,
         "first": 105955000,
-        "last": 106925000,
-        "count": 4
+        "last": 107515000,
+        "count": 5
       },
       "نرخ مثقال | مثقال | خرید": {
-        "high": 106685000,
+        "high": 107145000,
         "low": 105575000,
         "first": 105575000,
-        "last": 106555000,
-        "count": 4
+        "last": 107145000,
+        "count": 5
       }
     }
   },
