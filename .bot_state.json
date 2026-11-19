@@ -1,15 +1,7 @@
 {
-  "last_time": "2026-11-19T07:58:08+00:00",
-  "last_signature": "[[\"نقدی\", {\"خرید\": 105150000, \"فروش\": 105230000}]]",
+  "last_time": "2026-11-19T08:54:05+00:00",
+  "last_signature": "[[\"نرخ مثقال\", {\"خرید\": 105345000, \"فروش\": 105415000}]]",
   "seen": [
-    "valaneia_gold/367116",
-    "valaneia_gold/367272",
-    "valaneia_gold/367273",
-    "valaneia_gold/367276",
-    "valaneia_gold/367279",
-    "valaneia_gold/367281",
-    "valaneia_gold/367623",
-    "alizadeyazd/1519295",
     "valaneia_gold/367630",
     "alizadeyazd/1519307",
     "valaneia_gold/367639",
@@ -81,7 +73,15 @@
     "valaneia_gold/370139",
     "alizadeyazd/1521901",
     "valaneia_gold/370140",
-    "alizadeyazd/1521906"
+    "alizadeyazd/1521906",
+    "alizadeyazd/1522099",
+    "valaneia_gold/370306",
+    "alizadeyazd/1522104",
+    "alizadeyazd/1522106",
+    "valaneia_gold/370309",
+    "alizadeyazd/1522107",
+    "valaneia_gold/370312",
+    "alizadeyazd/1522111"
   ],
   "daily": {
     "2026-11-16": {
@@ -218,46 +218,46 @@
     },
     "2026-11-19": {
       "نرخ مثقال | مثقال | فروش": {
-        "high": 105655000,
+        "high": 105665000,
         "low": 105605000,
         "first": 105605000,
-        "last": 105655000,
-        "count": 3
+        "last": 105665000,
+        "count": 6
       },
       "نرخ مثقال | مثقال | خرید": {
-        "high": 105275000,
+        "high": 105295000,
         "low": 105215000,
         "first": 105215000,
-        "last": 105275000,
-        "count": 3
+        "last": 105295000,
+        "count": 6
       },
       "پس‌فردایی | مثقال | فروش": {
         "high": 105710000,
         "low": 105660000,
         "first": 105660000,
-        "last": 105710000,
-        "count": 2
+        "last": 105680000,
+        "count": 4
       },
       "پس‌فردایی | مثقال | خرید": {
         "high": 105300000,
         "low": 105240000,
         "first": 105240000,
-        "last": 105300000,
-        "count": 2
+        "last": 105270000,
+        "count": 4
       },
       "نقدی | مثقال | فروش": {
         "high": 105520000,
-        "low": 105430000,
+        "low": 105410000,
         "first": 105460000,
-        "last": 105480000,
-        "count": 7
+        "last": 105410000,
+        "count": 10
       },
       "نقدی | مثقال | خرید": {
         "high": 105120000,
         "low": 105020000,
         "first": 105050000,
-        "last": 105100000,
-        "count": 7
+        "last": 105040000,
+        "count": 10
       }
     }
   },
