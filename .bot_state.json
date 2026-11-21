@@ -1,16 +1,7 @@
 {
-  "last_time": "2026-11-21T11:07:28+00:00",
-  "last_signature": "[[\"نرخ مثقال\", {\"خرید\": 100115000, \"فروش\": 100195000}]]",
+  "last_time": "2026-11-21T11:49:46+00:00",
+  "last_signature": "[[\"نقدی\", {\"خرید\": 99770000, \"فروش\": 99880000}]]",
   "seen": [
-    "valaneia_gold/373120",
-    "alizadeyazd/1524869",
-    "valaneia_gold/373124",
-    "valaneia_gold/373271",
-    "valaneia_gold/373272",
-    "alizadeyazd/1524996",
-    "valaneia_gold/373275",
-    "valaneia_gold/373276",
-    "alizadeyazd/1525000",
     "alizadeyazd/1525159",
     "alizadeyazd/1525162",
     "valaneia_gold/373409",
@@ -81,7 +72,16 @@
     "alizadeyazd/1527338",
     "valaneia_gold/375529",
     "alizadeyazd/1527345",
-    "alizadeyazd/1527347"
+    "alizadeyazd/1527347",
+    "alizadeyazd/1527599",
+    "valaneia_gold/375762",
+    "alizadeyazd/1527607",
+    "valaneia_gold/375767",
+    "alizadeyazd/1527611",
+    "valaneia_gold/375771",
+    "valaneia_gold/375773",
+    "alizadeyazd/1527620",
+    "valaneia_gold/375779"
   ],
   "daily": {
     "2026-11-18": {
@@ -219,17 +219,17 @@
     "2026-11-21": {
       "نقدی | مثقال | فروش": {
         "high": 101330000,
-        "low": 100140000,
+        "low": 100000000,
         "first": 100950000,
-        "last": 100140000,
-        "count": 25
+        "last": 100130000,
+        "count": 33
       },
       "نقدی | مثقال | خرید": {
         "high": 100920000,
-        "low": 99770000,
+        "low": 99630000,
         "first": 100450000,
-        "last": 99770000,
-        "count": 25
+        "last": 99720000,
+        "count": 33
       },
       "پس‌فردایی | مثقال | فروش": {
         "high": 101650000,
@@ -249,15 +249,15 @@
         "high": 100955000,
         "low": 99900000,
         "first": 100925000,
-        "last": 100445000,
-        "count": 12
+        "last": 100195000,
+        "count": 13
       },
       "نرخ مثقال | مثقال | خرید": {
         "high": 100565000,
         "low": 99330000,
         "first": 100535000,
-        "last": 100065000,
-        "count": 12
+        "last": 99825000,
+        "count": 13
       }
     }
   },
