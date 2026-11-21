@@ -1,17 +1,7 @@
 {
-  "last_time": "2026-11-21T05:47:01+00:00",
-  "last_signature": "[[\"نقدی\", {\"خرید\": 100280000, \"فروش\": 100480000}]]",
+  "last_time": "2026-11-21T06:47:45+00:00",
+  "last_signature": "[[\"نقدی\", {\"خرید\": 100710000, \"فروش\": 100860000}]]",
   "seen": [
-    "valaneia_gold/371652",
-    "alizadeyazd/1523667",
-    "valaneia_gold/371662",
-    "alizadeyazd/1523671",
-    "valaneia_gold/371668",
-    "valaneia_gold/371855",
-    "valaneia_gold/372027",
-    "valaneia_gold/372030",
-    "valaneia_gold/372031",
-    "valaneia_gold/372036",
     "valaneia_gold/372038",
     "valaneia_gold/372244",
     "alizadeyazd/1523952",
@@ -81,7 +71,17 @@
     "valaneia_gold/373883",
     "valaneia_gold/373885",
     "valaneia_gold/373889",
-    "valaneia_gold/373891"
+    "valaneia_gold/373891",
+    "alizadeyazd/1525843",
+    "valaneia_gold/374134",
+    "alizadeyazd/1525851",
+    "valaneia_gold/374139",
+    "alizadeyazd/1525855",
+    "valaneia_gold/374144",
+    "alizadeyazd/1525861",
+    "valaneia_gold/374151",
+    "alizadeyazd/1525867",
+    "valaneia_gold/374160"
   ],
   "daily": {
     "2026-11-18": {
@@ -218,32 +218,32 @@
     },
     "2026-11-21": {
       "نقدی | مثقال | فروش": {
-        "high": 100950000,
+        "high": 101330000,
         "low": 100730000,
         "first": 100950000,
-        "last": 100730000,
-        "count": 3
+        "last": 101110000,
+        "count": 11
       },
       "نقدی | مثقال | خرید": {
-        "high": 100450000,
+        "high": 100920000,
         "low": 100230000,
         "first": 100450000,
-        "last": 100230000,
-        "count": 3
+        "last": 100660000,
+        "count": 11
       },
       "پس‌فردایی | مثقال | فروش": {
-        "high": 101190000,
+        "high": 101650000,
         "low": 101170000,
         "first": 101190000,
-        "last": 101170000,
-        "count": 2
+        "last": 101650000,
+        "count": 4
       },
       "پس‌فردایی | مثقال | خرید": {
-        "high": 100680000,
+        "high": 101200000,
         "low": 100660000,
         "first": 100680000,
-        "last": 100660000,
-        "count": 2
+        "last": 101200000,
+        "count": 4
       }
     }
   },
